@@ -7,31 +7,67 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.io.Console;
 import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
 
-    ImageView currPlayer;
-
+    private ImageView currPlayer;
+    private Boolean bo3;
+    private TextView scoreFirstTextView;
+    private TextView scoreSecondTextView;
+    private int scoreFirst;
+    private int scoreSecond;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        bo3 = getIntent().getBooleanExtra("bo3", false);
+
         currPlayer = (ImageView) findViewById(R.id.currPlayerImageView);
         currPlayer.setImageResource(R.drawable.red);
 
+        if (bo3 == true){
+            TextView firstPlayerTextView = (TextView) findViewById(R.id.firstPlayerTextView);
+            TextView secondPlayerTextView = (TextView) findViewById(R.id.secondPlayerTextView);
+            scoreFirstTextView = (TextView) findViewById(R.id.scoreFirst);
+            scoreSecondTextView = (TextView) findViewById(R.id.scoreSecond);
+            firstPlayerTextView.setVisibility(View.VISIBLE);
+            secondPlayerTextView.setVisibility(View.VISIBLE);
+            scoreFirstTextView.setVisibility(View.VISIBLE);
+            scoreSecondTextView.setVisibility(View.VISIBLE);
+
+            scoreFirst = getIntent().getIntExtra("score1", 0);
+            scoreSecond = getIntent().getIntExtra("score2", 0);
+            int decrement = getIntent().getIntExtra("decrement", 0);
+            Boolean fullReset = getIntent().getBooleanExtra("fullReset", false);
+            if (decrement!=0) {
+                if (decrement == 1) scoreFirst--;
+                else scoreSecond--;
+            }
+            if (fullReset){
+                scoreFirst=0;
+                scoreSecond=0;
+            }
+            getIntent().removeExtra("decrement");
+            getIntent().removeExtra("fullReset");
+            scoreFirstTextView.setText(String.valueOf(scoreFirst));
+            scoreSecondTextView.setText(String.valueOf(scoreSecond));
+
+            }
+        }
 
 
-    }
+
+
 
 
     private GameBoard board = new GameBoard(6, 7);
     private int playerID = 1;
     private int counter = board.getM() * board.getN();
-
 
 
 
@@ -57,11 +93,35 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-
-
         counter--;
         if (board.checkIfGameEnds()){
-            gameEnds();
+            if (bo3 == false )
+                gameEnds();
+            else{
+
+
+                    if (playerID==1) {
+                        scoreFirst++;
+                        scoreFirstTextView.setText(String.valueOf(scoreFirst));
+                    }
+                    else {
+                        scoreSecond++;
+                        scoreSecondTextView.setText(String.valueOf(scoreSecond));
+                    }
+
+
+                    if (scoreFirst == 3 || scoreSecond == 3){
+                        gameEndsBO3();
+                    }
+                    else {
+                        Intent intent = getIntent();
+                        intent.putExtra("score1", scoreFirst);
+                        intent.putExtra("score2", scoreSecond);
+                        finish();
+                        startActivity(intent);
+                    }
+            }
+
         }
 
         if (playerID == 1 ){
@@ -98,8 +158,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void gameEnds() {
         GameEnds dialog = new GameEnds();
-
-
         Bundle args = new Bundle();
         args.putInt("num", playerID);
         dialog.setArguments(args);
@@ -107,9 +165,32 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void gameEndsBO3(){
+        GameEnds dialog = new GameEnds();
+        Bundle args = new Bundle();
+        if (scoreFirst > scoreSecond)
+            args.putInt("num", 1);
+        else
+            args.putInt("num", 2);
+        dialog.setArguments(args);
+        dialog.show(getSupportFragmentManager(), "dialog1");
+
+    }
+
     public void restartGame(View v){
-        Restart dialog = new Restart();
-        dialog.show(getSupportFragmentManager(), "dialog2");
+        if (!bo3) {
+            Restart dialog = new Restart();
+            dialog.show(getSupportFragmentManager(), "dialog2");
+        }
+        else{
+
+
+            RestartBO3 dialog = new RestartBO3();
+            Bundle args = new Bundle();
+            args.putInt("num", playerID);
+            dialog.setArguments(args);
+            dialog.show(getSupportFragmentManager(), "dialogreset");
+        }
 
     }
 
