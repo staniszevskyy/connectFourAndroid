@@ -98,7 +98,7 @@ public class GameBoard {
             if (gameBoard[row][colNum].getColor().equals("none")) {
                 if (playerID == 1)
                     gameBoard[row][colNum].setColor("red");
-                else
+                else if (playerID == 2)
                     gameBoard[row][colNum].setColor("blue");
                 break;
             }
